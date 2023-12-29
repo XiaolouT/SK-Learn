@@ -1,7 +1,9 @@
-﻿using Microsoft.SemanticKernel.AI.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
+﻿
 using Microsoft.SemanticKernel;
 using Microsoft.Extensions.Hosting;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
+using SK.Learn.ConsoleChat.config;
 
 namespace SK.Learn.ConsoleChat
 {
@@ -9,11 +11,12 @@ namespace SK.Learn.ConsoleChat
     {
         private readonly Kernel _kernel;
         private readonly IHostApplicationLifetime _lifeTime;
-
-        public ConsoleChat(Kernel kernel, IHostApplicationLifetime lifeTime)
+        private readonly KernelSettings _kernelSettings;
+        public ConsoleChat(Kernel kernel, IHostApplicationLifetime lifeTime, KernelSettings kernelSettings)
         {
             this._kernel = kernel;
             this._lifeTime = lifeTime;
+            this._kernelSettings = kernelSettings;
         }
 
         /// <summary>
@@ -35,7 +38,7 @@ namespace SK.Learn.ConsoleChat
         /// </summary>
         private async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            ChatHistory chatMessages = new ChatHistory();
+            ChatHistory chatMessages = new ChatHistory(this._kernelSettings.SystemPrompt);
             IChatCompletionService chatCompletionService = this._kernel.GetRequiredService<IChatCompletionService>();
 
             // Loop till we are cancelled
@@ -48,8 +51,29 @@ namespace SK.Learn.ConsoleChat
                 // Get the chat completions
                 OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new()
                 {
-                    FunctionCallBehavior = FunctionCallBehavior.AutoInvokeKernelFunctions
+                    ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
                 };
+                /* get response */
+                //var contents = await chatCompletionService.GetChatMessageContentsAsync(chatMessages,
+                //    executionSettings: openAIPromptExecutionSettings,
+                //    kernel: this._kernel,
+                //    cancellationToken: cancellationToken).ConfigureAwait(false);
+                //if (contents != null)
+                //{
+                //    foreach (var content in contents)
+                //    {
+                //        if (content.Role == AuthorRole.Assistant)
+                //        {
+                //            System.Console.Write("Assistant > ");
+                //            System.Console.Write(content.Content);
+                //            System.Console.WriteLine();
+
+                //            chatMessages.AddAssistantMessage(content.Content);
+                //        }
+                //    }
+                //}
+
+                /* get streaming response */
                 IAsyncEnumerable<StreamingChatMessageContent> result =
                     chatCompletionService.GetStreamingChatMessageContentsAsync(
                         chatMessages,
@@ -57,34 +81,34 @@ namespace SK.Learn.ConsoleChat
                         kernel: this._kernel,
                         cancellationToken: cancellationToken);
 
-                // Print the chat completions
+                //Print the chat completions
                 ChatMessageContent? chatMessageContent = null;
                 await foreach (var content in result)
                 {
-                    if (content.Role.HasValue)
+                    if (content.Role == AuthorRole.Assistant && chatMessageContent == null)
                     {
                         System.Console.Write("Assistant > ");
                         chatMessageContent = new(
-                            content.Role ?? AuthorRole.Assistant,
-                            content.ModelId!,
-                            content.Content!,
+                            AuthorRole.Assistant,
+                            content.ModelId,
+                            content.Content,
                             content.InnerContent,
                             content.Encoding,
                             content.Metadata
                         );
                     }
                     System.Console.Write(content.Content);
-                    if (chatMessageContent!= null)
+                    if (chatMessageContent != null)
                     {
                         chatMessageContent.Content += content.Content;
                     }
-                   
+
 
                 }
                 System.Console.WriteLine();
                 if (chatMessageContent != null)
                 {
-                    chatMessages.AddMessage(chatMessageContent!);
+                    chatMessages.AddAssistantMessage(chatMessageContent.Content);
                 }
             }
         }

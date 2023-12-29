@@ -1,10 +1,9 @@
-﻿using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
-using Microsoft.SemanticKernel;
+﻿
 using Microsoft.Extensions.Hosting;
 using SK.Learn.ConsoleChat.config;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using SK.Learn.ConsoleChat.plugins;
+using System.Text;
 
 namespace SK.Learn.ConsoleChat
 {
@@ -12,8 +11,8 @@ namespace SK.Learn.ConsoleChat
     {
         static async Task Main(string[] args)
         {
-
-
+            Console.InputEncoding = Encoding.Unicode;
+            Console.OutputEncoding = Encoding.Unicode;
             // Load the kernel settings
             var kernelSettings = KernelSettings.LoadSettings();
 
@@ -23,30 +22,24 @@ namespace SK.Learn.ConsoleChat
                 {
                     logging.ClearProviders();
                     logging.AddConsole();
-                    logging.SetMinimumLevel(kernelSettings.LogLevel ?? LogLevel.Warning);
+                    logging.SetMinimumLevel( LogLevel.Warning);
                 });
 
             // Configure the services for the host
             builder.ConfigureServices((context, services) =>
             {
+                services.AddSingleton(kernelSettings);
 
-                // Add kernel settings to the host builder
-                services
-                    .AddSingleton<KernelSettings>(kernelSettings)
-                    .AddTransient<Kernel>(serviceProvider => {
-                        KernelBuilder builder = new();
-                        builder.Services.AddLogging(c => c.AddDebug().SetMinimumLevel(LogLevel.Information));
-                        builder.Services.AddChatCompletionService(kernelSettings);
-                        builder.Plugins.AddFromType<LightPlugin>();
+                var semanticTextMemory = services.AddSemanticTextMemory(kernelSettings);
 
-                        return builder.Build();
-                    })
-                    .AddHostedService<ConsoleChat>();
+                services.AddChatCompletionService(kernelSettings, semanticTextMemory);
+                services.AddHostedService<ConsoleChat>();
             });
 
             // Build and run the host. This keeps the app running using the HostedService.
             var host = builder.Build();
-            await host.RunAsync();
+
+            await host.RunAsync().ConfigureAwait(false);
         }
     }
 }

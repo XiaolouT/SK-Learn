@@ -4,27 +4,33 @@ using System.Text.Json.Serialization;
 
 namespace SK.Learn.ConsoleChat.config
 {
-    internal class KernelSettings
+    public class KernelSettings
     {
         public const string DefaultConfigFile = "config/appsettings.json";
 
         [JsonPropertyName("serviceType")]
         public string ServiceType { get; set; } = string.Empty;
 
-        [JsonPropertyName("serviceId")]
-        public string ServiceId { get; set; } = string.Empty;
+        [JsonPropertyName("chatDeploymentId")]
+        public string ChatDeploymentId { get; set; } = string.Empty;
 
-        [JsonPropertyName("deploymentId")]
-        public string DeploymentId { get; set; } = string.Empty;
+        [JsonPropertyName("chatModelId")]
+        public string ChatModelId { get; set; } = string.Empty;
 
-        [JsonPropertyName("modelId")]
-        public string ModelId { get; set; } = string.Empty;
+        [JsonPropertyName("embeddingDeploymentId")]
+        public string EmbeddingDeploymentId { get; set; } = string.Empty;
+
+        [JsonPropertyName("embeddingModelId")]
+        public string EmbeddingModelId { get; set; } = string.Empty;
 
         [JsonPropertyName("endpoint")]
         public string Endpoint { get; set; } = string.Empty;
 
         [JsonPropertyName("apiKey")]
         public string ApiKey { get; set; } = string.Empty;
+
+        [JsonPropertyName("weatherApiKey")]
+        public string WeatherApiKey { get; set; } = string.Empty;
 
         [JsonPropertyName("orgId")]
         public string OrgId { get; set; } = string.Empty;
@@ -33,7 +39,7 @@ namespace SK.Learn.ConsoleChat.config
         public LogLevel? LogLevel { get; set; } = Microsoft.Extensions.Logging.LogLevel.Warning;
 
         [JsonPropertyName("systemPrompt")]
-        public string SystemPrompt { get; set; } = "You are a friendly, intelligent, and curious assistant who is good at conversation.";
+        public string SystemPrompt { get; set; } = "You are a friendly, intelligent, and curious assistant who is good at conversation, always response with Chinese.";
 
         /// <summary>
         /// Load the kernel settings from settings.json if the file exists and if not attempt to use user secrets.

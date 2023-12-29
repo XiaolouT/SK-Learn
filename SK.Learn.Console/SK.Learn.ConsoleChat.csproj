@@ -12,13 +12,27 @@
 		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="8.0.0" />
-		<PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-rc3" />
+		<PackageReference Include="Microsoft.SemanticKernel" Version="1.0.1" />
+		<PackageReference Include="Microsoft.SemanticKernel.Connectors.Sqlite" Version="1.0.1-alpha" />
+		<PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.0.1-alpha" />
+		<PackageReference Include="Microsoft.SemanticKernel.Plugins.Memory" Version="1.0.1-alpha" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <None Update="config\appsettings.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
+	  <None Update="memories.sqlite">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="plugins\cn_adcode_citycode.csv">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="plugins\summarize\" />
 	</ItemGroup>
 
 </Project>
